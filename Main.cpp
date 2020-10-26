@@ -5,14 +5,15 @@
 #include <ctime>
 #include "Matrix.h"
 #include "RootSearchMethods.h"
+#include "Interpolation.h"
 
 using namespace std;
 
 int main()
 {
-	SetConsoleCP(1251);
-	SetConsoleOutputCP(1251);
-	// some text
+	
+
+	Interpolation::MakeDifTable(1, 2, 0.2,19);
 	
 	return 0;
 }
