@@ -30,9 +30,13 @@ void Interpolation::MakeDifTable (double a, double b, double step, int variant)
 				else if (variant == 24)
 					std::cout << F24(xArray[i]) << " ";
 
+			}
+			else
+			{
+				std::cout<<
+
 
 			}
-			
 
 		}
 
@@ -48,4 +52,23 @@ double Interpolation::F20(double x)
 double Interpolation::F24(double x)
 {
 	return 2 * pow(M_E, x) - 2 * x + 3;
+}
+
+double Interpolation::RecF(int start, int finish, double* Arr,int variant)
+{
+	if (start - finish == 1)
+	{
+		if (variant == 20)
+			return (F20(Arr[finish]) - F20(Arr[start])) / (Arr[finish] - Arr[start]);
+		else if (variant==24)
+			return (F24(Arr[finish]) - F24(Arr[start])) / (Arr[finish] - Arr[start]);
+	}
+	else
+	{
+
+
+
+	}
+
+
 }
