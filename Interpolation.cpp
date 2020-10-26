@@ -33,11 +33,13 @@ void Interpolation::MakeDifTable (double a, double b, double step, int variant)
 			}
 			else
 			{
-				//std::cout<<
+				std::cout << RecF(i, j - 1, xArray, variant) << " ";
 
 
 			}
 
+			if (j == n)
+				std::cout << std::endl;
 		}
 
 
@@ -65,7 +67,10 @@ double Interpolation::RecF(int start, int finish, double* Arr,int variant)
 	}
 	else
 	{
-
+		if (variant == 20)
+			return (F20(RecF(start + 1, finish, Arr, variant)) - F20(RecF(start, finish - 1, Arr, variant))) / (Arr[finish] - Arr[start]);
+		else if (variant==24)
+			return (F24(RecF(start + 1, finish, Arr, variant)) - F24(RecF(start, finish - 1, Arr, variant))) / (Arr[finish] - Arr[start]);
 
 
 	}
