@@ -9,7 +9,7 @@
 
 void Interpolation::MakeDifTable (double a, double b, double step, int variant)
 {
-	int n = (a - b) / step;
+	int n = (b-a) / step;
 	double* xArray = new double[n];
 
 	for (int i = 0; i < n; i++)
