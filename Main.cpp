@@ -13,6 +13,8 @@ int main()
 	SetConsoleCP(1251);
 	SetConsoleOutputCP(1251);
 	// some text
+	int a = 5;
+	string str = "text";
 	
 	return 0;
 }
