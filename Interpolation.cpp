@@ -33,7 +33,7 @@ void Interpolation::MakeDifTable (double a, double b, double step, int variant)
 			}
 			else
 			{
-				std::cout<<
+				//std::cout<<
 
 
 			}
