@@ -6,6 +6,7 @@
 #include<math.h>
 #include <cmath>
 
+const int width = 15;
 
 void Interpolation::MakeDifTable (double a, double b, double step, int variant)
 {
@@ -16,12 +17,13 @@ void Interpolation::MakeDifTable (double a, double b, double step, int variant)
 
 	int n = (b-a) / step;
 	double* xArray = new double[n+1];
+	double* difVector = new double[n + 1];
 
 	for (int i = 0; i < n+1; i++)
 	{
 		xArray[i] = a+step * (i);
 	}
-
+	double tmp;
 	for (int i=0; i<n+1;i++)
 		for (int j = 0; j < n + 2-i; j++)
 		{
@@ -31,25 +33,42 @@ void Interpolation::MakeDifTable (double a, double b, double step, int variant)
 			{
 				
 				if (variant == 20)
-					std::cout << F20(xArray[i]) << " ";
+				{
+					tmp = F20(xArray[i]);
+					std::cout << tmp<< " ";
+				}
 				else if (variant == 24)
-					std::cout << F24(xArray[i]) << " ";
-				else if (variant ==19)
-					std::cout << F19(xArray[i]) << " ";
+				{
+					tmp = F24(xArray[i]);
+					std::cout << tmp << " ";
+				}
+				else if (variant == 19)
+				{
+					tmp = F19(xArray[i]);
+					std::cout << tmp << " ";
+
+				}
+				
 			}
 			else
 			{
-				std::cout << RecF(i, j - 1+i, xArray, variant) << " ";
+				tmp = RecF(i, j - 1 + i, xArray, variant);
+				std::cout << tmp<< " ";
 
 
 			}
+			if (i == 0&&j>0)
+				difVector[j-1] = tmp;
+
 
 			if (j == n+1-i)
 				std::cout << std::endl;
 		}
 
 
-
+	
+	NewtonInterpolation(difVector, n + 1,variant, a,b,n,xArray,n);
+	CubeSpline(xArray, difVector, n + 1, variant);
 }
 
 double Interpolation::F20(double x)
@@ -57,15 +76,47 @@ double Interpolation::F20(double x)
 	return pow(M_E, x) - pow(x, 2) + 1;
 }
 
+double Interpolation :: dF20(double x,int step)
+{
+	return pow(M_E, x);
+}
+
+double Interpolation::d1F20(double x)
+{
+	return (pow(M_E, x) - 2 * x);
+}
+
+
 double Interpolation::F24(double x)
 {
 	return 2 * pow(M_E, x) - 2 * x + 3;
+}
+
+double Interpolation :: dF24(double x, int step)
+{
+	return 2 * pow(M_E, x);
+}
+
+double Interpolation::d1F24(double x)
+{
+
+	return 2 * pow(M_E, x) - 2;
 }
 
 double Interpolation::F19(double x)
 {
 	double new1 = pow(3, x) + 2 * x - 5;
 	return pow(3, x) + 2 * x - 5;
+}
+
+double Interpolation::dF19(double x, int step)
+{
+	return pow(3, x)*pow(log(3), step);
+}
+
+double Interpolation::d1F19(double x)
+{
+	return pow(3, x)*log(3) + 2;
 }
 
 double Interpolation::RecF(int start, int finish, double* Arr,int variant)
@@ -91,6 +142,328 @@ double Interpolation::RecF(int start, int finish, double* Arr,int variant)
 		else if (variant==19)
 			return (RecF(start + 1, finish, Arr, variant) - RecF(start, finish - 1, Arr, variant)) / (Arr[finish] - Arr[start]);
 	}
+
+
+}
+
+void Interpolation::PrintHead()
+{
+	std::cout<< std::setw(width) << std::left << "x" << std::setw(width) << std::left << "f(x)" << std::setw(width) << std::left << "Pn(x)" << std::setw(width) << std::left <<
+		"Delta" << std::setw(width) << std::left << "ќценка" << std::endl;
+
+}
+
+void Interpolation::PrintSplineHead()
+{
+std::cout<< std::setw(width) << std::left << "x" << std::setw(width) << std::left << "df/dx(x)" << std::setw(width) << std::left << "m" << std::setw(width) << std::left <<
+		"Delta" << std::setw(width) << std::left << "ќценка" << std::endl;
+
+}
+
+void Interpolation::PrintBodySpline(double x, double df, double m, double delta, double err)
+{
+	std::cout << std::setw(width) << std::left << x << std::setw(width) << std::left <<df << std::setw(width) << std::left << m << std::setw(width) << std::left <<
+		delta << std::setw(width) << std::left << err << std::endl;
+}
+
+void Interpolation::PrintBodyNewton(double x,double fx, double pn, double delta, double err)
+{
+	std::cout<<std::setw(width) << std::left << x << std::setw(width) << std::left << fx << std::setw(width) << std::left << pn << std::setw(width) << std::left <<
+		delta << std::setw(width) << std::left << err << std::endl;
+
+}
+
+void Interpolation::NewtonInterpolation( double* difVector , int difVectorN, int variant,double start,double finish,int n,double* Arr, int nArr)
+{
+	double* xArray = new double[5];
+	double func;
+	double Pn;
+	double Rn;
+	double M6;
+
+	if (variant == 19)
+		M6= dF19(2,6);
+	else if (variant==20)
+		M6=dF20(2,6);
+	else if (variant == 24)
+		M6=dF24(2,6);
+	std::cout << std::endl;
+	std::cout <<"M6: "<<M6<< std::endl;
+	std::cout << std::endl;
+	for (int i = 0; i < 5; i++)
+		xArray[i] = start + (i + 0.5)*0.2;
+
+	PrintHead();
+
+	for (int i = 0; i < 5; i++)
+	{
+		if (variant == 19)
+			func = F19(xArray[i]);
+		else if (variant == 20)
+			func = F20(xArray[i]);
+		else if (variant == 24)
+			func = F24(xArray[i]);
+
+		Pn=CountPn(xArray[i], 5, Arr, nArr,difVector);
+		Rn = abs(FindPolynom(xArray[i], 6, Arr)*M6/720);
+		/*std::cout << func<< std::endl;
+		std::cout << Pn - func << std::endl;
+		std::cout << Pn << std::endl;*/
+
+		PrintBodyNewton(xArray[i], func, Pn, Pn - func, Rn);
+	}
+
+	/*for (int i = 0; i < difVectorN; i++)
+		std::cout << difVector[i] << " ";*/
+
+
+
+}
+
+double Interpolation::CountPn(double x, int n, double* Arr, int xArr,double* difVector)
+{
+	double sum=difVector[0];
+
+	for (int i = 1; i < n; i++)
+	{
+		sum += difVector[i] * FindPolynom(x,i, Arr);
+		
+	}
+
+	return sum;
+}
+
+double Interpolation::FindPolynom(double x,int kol, double* Arr)
+	{
+		if (kol == 0)
+			return 1;
+		else
+		{
+			return (x - Arr[kol - 1])*FindPolynom(x, kol - 1, Arr);
+		}
+
+	}
+
+void Interpolation::CubeSpline(double* xArray, double* difVector, int N, int variant)
+{
+	double M5;
+	
+	double* mVector = new double[N];
+
+
+	if (variant == 19)
+	{
+		M5 = dF19(2, 5);
+		mVector[0] = d1F19(xArray[0]);
+		mVector[N - 1] = d1F19(xArray[N - 1]);
+	}
+	else if (variant == 20)
+	{
+		M5 = dF20(2, 5);
+		mVector[0] = d1F20(xArray[0]);
+		mVector[N - 1] = d1F20(xArray[N - 1]);
+	}
+	else if (variant == 24)
+	{
+		M5 = dF24(2, 5);
+		mVector[0] = d1F24(xArray[0]);
+		mVector[N - 1] = d1F24(xArray[N - 1]);
+	}
+
+	std::cout << std::endl;
+	std::cout << "M5: " << M5 << std::endl;
+	std::cout << std::endl;
+
+	GetM(xArray, difVector, N, variant,M5);
+
+
+
+}
+
+void Interpolation::GetM(double* xArray, double* difVector, int N, int variant,double M5)
+{
+	double lyambda = 0.5;
+	double mu = 0.5;
+	double** Matrix = new double*[N - 2];
+	double*m = new double[N];
+	for (int i = 0; i < N; i++)
+		m[i] = 0;
+	double f = 0;
+	int j = 0;
+	for (int i = 0; i < N - 2; i++)
+	{
+		Matrix[i] = new double[N - 1];
+
+	}
+
+	for (int i = 0; i < N - 2; i++)
+		for (int j = 0; j < N - 1; j++)
+			Matrix[i][j] = 0;
+
+
+	for (int i = 1; i < N - 1; i++)
+	{
+		if (i == 1)
+		{
+			Matrix[0][0] = 2;
+			Matrix[0][1] = 0.5;
+			if (variant == 19)
+				Matrix[0][N - 2] = 1.5*(F19(xArray[i + 1]) - F19(xArray[i - 1])) / 0.2 - 0.5*d1F19(xArray[i - 1]);
+			else if (variant == 20)
+				Matrix[0][N - 2] = 1.5*(F20(xArray[i + 1]) - F20(xArray[i - 1])) / 0.2 - 0.5*d1F20(xArray[i - 1]);
+			else if (variant == 24)
+				Matrix[0][N - 2] = 1.5*(F24(xArray[i + 1]) - F24(xArray[i - 1])) / 0.2 - 0.5*d1F24(xArray[i - 1]);
+		}
+		else if (i == N - 2)
+		{
+			Matrix[N - 3][N - 4] = 0.5;
+			Matrix[N - 3][N - 3] = 2;
+
+			if (variant == 19)
+				Matrix[N - 3][N - 2] = 1.5*(F19(xArray[i + 1]) - F19(xArray[i - 1])) / 0.2 - 0.5*d1F19(xArray[i + 1]);
+			else if (variant == 20)
+				Matrix[N - 3][N - 2] = 1.5*(F20(xArray[i + 1]) - F20(xArray[i - 1])) / 0.2 - 0.5*d1F20(xArray[i + 1]);
+			else if (variant == 24)
+				Matrix[N - 3][N - 2] = 1.5*(F24(xArray[i + 1]) - F24(xArray[i - 1])) / 0.2 - 0.5*d1F24(xArray[i + 1]);
+
+		}
+		else
+		{
+			Matrix[i - 1][0 + j] = 0.5;
+			Matrix[i - 1][1 + j] = 2;
+			Matrix[i - 1][2 + j] = 0.5;
+
+			if (variant == 19)
+			{
+				double q = xArray[i + 1];
+				double m = xArray[i - 1];
+				Matrix[i - 1][N - 2] = 1.5*(F19(xArray[i + 1]) - F19(xArray[i - 1])) / 0.2;
+				double tt = Matrix[i - 1][N - 2];
+				double weq;
+			}
+			else if (variant == 20)
+				Matrix[i - 1][N - 2] = 1.5*(F20(xArray[i + 1]) - F20(xArray[i - 1])) / 0.2;
+			else if (variant == 24)
+				Matrix[i - 1][N - 2] = 1.5*(F24(xArray[i + 1]) - F24(xArray[i - 1])) / 0.2;
+
+			j++;
+		}
+
+
+	}
+	//for (int i = 0; i < N - 2; i++)
+	//{
+	//	for (int j = 0; j < N - 1; j++)
+	//		std::cout << Matrix[i][j] << " ";
+	//	std::cout << std::endl;
+	//}
+	//std::cout << std::endl;
+	int ras = N - 2;
+
+
+	float  tmp;
+	int k;
+
+	for (int i = 0; i < ras; i++)
+	{
+		tmp = Matrix[i][i];
+		for (j = ras; j >= i; j--)
+			Matrix[i][j] /= tmp;
+		for (j = i + 1; j < ras; j++)
+		{
+			tmp = Matrix[j][i];
+			for (k = ras; k >= i; k--)
+			{
+				Matrix[j][k] -= tmp * Matrix[i][k];
+				if (abs(Matrix[j][k]) < 0.0001)
+					Matrix[j][k] = 0;
+			}
+		}
+	}
+
+	//for (int i = 0; i < N - 2; i++)
+	//{
+	//	for (int j = 0; j < N - 1; j++)
+	//		std::cout << Matrix[i][j] << " ";
+	//	std::cout << std::endl;
+	//}
+	//std::cout << std::endl;
+
+	if (variant == 19)
+	{
+
+		m[0] = d1F19(xArray[0]);
+		m[N-1] = d1F19(xArray[N-1]);
+	}
+	else if (variant == 20)
+	{
+		m[0] = d1F20(xArray[0]);
+		m[N - 1] = d1F20(xArray[N - 1]);
+
+	}
+	else if (variant == 24)
+	{
+		m[0] = d1F24(xArray[0]);
+		m[N - 1] = d1F24(xArray[N - 1]);
+
+	}
+
+	/*for (int i = N - 3; i >= 1; i--)
+	{
+		double d = 0;
+		for (int j = i + 1; j <= N - 3; j++)
+		{
+			d += Matrix[i][j] * Matrix[j][N - 1];
+		}
+
+	}*/
+	double d;
+
+
+	for (int i = N-3; i>=0; i--)
+	{
+		d = 0;
+		for (int j = i+1; j < N - 2; j++)
+		{
+			d += Matrix[i][j]*m[j+1];
+		}
+		m[i+1] = Matrix[i][N - 2] - d;
+		d = m[i+1];
+	}
+
+	/*for (int i = 0; i < N; i++)
+		std::cout << m[i] << " ";*/
+	PrintSplineHead();
+
+	double func;
+	for (int i = 0; i < N; i++)
+	{
+		if (variant == 19)
+			func = d1F19(xArray[i]);
+		else if (variant == 20)
+			func = d1F20(xArray[i]);
+		else if (variant == 24)
+			func = d1F24(xArray[i]);
+		PrintBodySpline(xArray[i], func, m[i], abs(func - m[i]), M5*pow(0.2,4)/60);
+	}
+
+
+	double M4;
+
+	if (variant == 19)
+	{
+		M4 = dF19(2, 4);
+	}
+	else if (variant == 20)
+	{
+		M4 = dF20(2, 4);
+	}
+	else if (variant == 24)
+	{
+		M4 = dF24(2, 4);
+	}
+
+	std::cout << M4<<std::endl;
 
 
 }
