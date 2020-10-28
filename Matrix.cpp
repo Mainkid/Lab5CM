@@ -338,8 +338,11 @@ double* Matrix::FindVectorX(double** L, double** U, double* b, int n)
 	return x;
 }
 
-double* Matrix::LU(double** A, double** L, double** U, double** P, double* b, int n)
+double* Matrix::LU(double** A, double* b, int n)
 {
+	double** L = Matrix::GetZeroMatrix(n);
+	double** U = Matrix::Clone(A, n);
+	double** P = Matrix::GetEMatrix(n);
 	double** A_Clone = Clone(A, n);
 
 	for (int i = 0; i < n; i++)
