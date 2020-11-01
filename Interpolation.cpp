@@ -12,8 +12,8 @@ const double a = 1;
 const double b = 2;
 
 const double c19=1;
-const double c20=0;
-const double c24 = 0;
+const double c20=3;
+const double c24 = 8;
 
 
 
@@ -33,7 +33,7 @@ void Interpolation::MakeDifTable (double** difTable, double* xArray,double* difV
 		{
 			if (j == 0)
 			{
-				std::cout << xArray[i] << " ";
+				//std::cout << xArray[i] << " ";
 				difTable[i][j] = xArray[i];
 			}
 			else if (j==1)
@@ -42,25 +42,26 @@ void Interpolation::MakeDifTable (double** difTable, double* xArray,double* difV
 				if (variant == 20)
 				{
 					tmp = F20(xArray[i],0);
-					std::cout << tmp<< " ";
+					//std::cout << tmp<< " ";
 				}
 				else if (variant == 24)
 				{
 					tmp = F24(xArray[i],0);
-					std::cout << tmp << " ";
+					//std::cout << tmp << " ";
 				}
 				else if (variant == 19)
 				{
 					tmp = F19(xArray[i],0);
-					std::cout << tmp << " ";
+					//std::cout << tmp << " ";
 
 				}
+				
 				difTable[i][j] = tmp;
 			}
 			else
 			{
 				tmp = RecF(i, j - 1 + i, xArray, variant, 0);
-				std::cout << tmp<< " ";
+				//std::cout << tmp<< " ";
 				difTable[i][j] = tmp;
 
 			}
@@ -86,6 +87,7 @@ void Interpolation::MakeDifTable(double** difTable, double* xArray, double* yArr
 		c = c20;
 	else if (variant == 24)
 		c = c24;
+
 
 	for (int i = 0; i < n + 1; i++)
 		for (int j = 0; j < n + 2 - i; j++)
@@ -147,7 +149,6 @@ double Interpolation::d1F20(double x)
 	return (pow(M_E, x) - 2 * x);
 }
 
-
 double Interpolation::F24(double x,double c)
 {
 	if (c == 0)
@@ -202,11 +203,12 @@ double Interpolation::RecF(int start, int finish, double* Arr,int variant,double
 	else
 	{//????????????????
 		if (variant == 20)
-			return (F20(RecF(start + 1, finish, Arr, variant,c),c) - F20(RecF(start, finish - 1, Arr, variant, c),c)) / (Arr[finish] - Arr[start]);
+			return (RecF(start + 1, finish, Arr, variant,c) - RecF(start, finish - 1, Arr, variant, c)) / (Arr[finish] - Arr[start]);
 		else if (variant==24)
-			return (F24(RecF(start + 1, finish, Arr, variant,c),c) - F24(RecF(start, finish - 1, Arr, variant, c),c)) / (Arr[finish] - Arr[start]);
+			return (RecF(start + 1, finish, Arr, variant,c) - RecF(start, finish - 1, Arr, variant, c)) / (Arr[finish] - Arr[start]);
 		else if (variant==19)
 			return (RecF(start + 1, finish, Arr, variant, c) - RecF(start, finish - 1, Arr, variant, c)) / (Arr[finish] - Arr[start]);
+		
 	}
 
 
@@ -266,7 +268,7 @@ void Interpolation::PrintBodySpline(double x, double df, double m, double delta,
 void Interpolation::PrintBodyNewton(double x,double fx, double pn, double delta, double err)
 {
 	std::cout<<std::setw(width) << std::left << x << std::setw(width) << std::left << fx << std::setw(width) << std::left << pn << std::setw(width) << std::left <<
-		delta << std::setw(width) << std::left << err << std::endl;
+		abs(delta) << std::setw(width) << std::left << err << std::endl;
 
 }
 
@@ -422,6 +424,7 @@ void Interpolation::GetM(double* xArray, double* difVector, int N, int variant,d
 				Matrix[0][N - 2] = 1.5*(F20(xArray[i + 1],0) - F20(xArray[i - 1],0)) / 0.2 - 0.5*d1F20(xArray[i - 1]);
 			else if (variant == 24)
 				Matrix[0][N - 2] = 1.5*(F24(xArray[i + 1],0) - F24(xArray[i - 1],0)) / 0.2 - 0.5*d1F24(xArray[i - 1]);
+			
 		}
 		else if (i == N - 2)
 		{
@@ -434,6 +437,7 @@ void Interpolation::GetM(double* xArray, double* difVector, int N, int variant,d
 				Matrix[N - 3][N - 2] = 1.5*(F20(xArray[i + 1],0) - F20(xArray[i - 1],0)) / 0.2 - 0.5*d1F20(xArray[i + 1]);
 			else if (variant == 24)
 				Matrix[N - 3][N - 2] = 1.5*(F24(xArray[i + 1],0) - F24(xArray[i - 1],0)) / 0.2 - 0.5*d1F24(xArray[i + 1]);
+			
 
 		}
 		else
@@ -454,6 +458,7 @@ void Interpolation::GetM(double* xArray, double* difVector, int N, int variant,d
 				Matrix[i - 1][N - 2] = 1.5*(F20(xArray[i + 1],0) - F20(xArray[i - 1],0)) / 0.2;
 			else if (variant == 24)
 				Matrix[i - 1][N - 2] = 1.5*(F24(xArray[i + 1],0) - F24(xArray[i - 1],0)) / 0.2;
+
 
 			j++;
 		}
@@ -517,6 +522,7 @@ void Interpolation::GetM(double* xArray, double* difVector, int N, int variant,d
 
 	}
 
+
 	/*for (int i = N - 3; i >= 1; i--)
 	{
 		double d = 0;
@@ -527,6 +533,11 @@ void Interpolation::GetM(double* xArray, double* difVector, int N, int variant,d
 
 	}*/
 	double d;
+
+	/*for (int i = 0; i < N; i++)
+	{
+		xArray[i]=
+	}*/
 
 
 	for (int i = N-3; i>=0; i--)
@@ -553,6 +564,7 @@ void Interpolation::GetM(double* xArray, double* difVector, int N, int variant,d
 			func = d1F20(xArray[i]);
 		else if (variant == 24)
 			func = d1F24(xArray[i]);
+		
 		PrintBodySpline(xArray[i], func, m[i], abs(func - m[i]), M5*pow(0.2,4)/60);
 	}
 
@@ -571,6 +583,7 @@ void Interpolation::GetM(double* xArray, double* difVector, int N, int variant,d
 	{
 		M4 = dF24(2, 4);
 	}
+
 	std::cout << std::endl;
 	std::cout <<"M4: "<< M4<<std::endl;
 
@@ -610,14 +623,14 @@ void Interpolation::GetM(double* xArray, double* difVector, int N, int variant,d
 		}
 		else if (variant == 24)
 		{
-			fi = F24(Array[i],0);
+			fi = F24(xArray[i],0);
 			fiplus1 = F24(xArray[i + 1],0);
 			f = F24(Array[i],0);
 		}
-
+		
 		S31 = Phi0(tau)*fi + Phi0(1 - tau)*fiplus1 + h * (Phi1(tau)*m[i] - Phi1(1 - tau)*m[i + 1]);
 
-		PrintSplineResultBody(xArray[i], f, S31, abs(S31 - f), er);
+		PrintSplineResultBody(Array[i], f, S31, abs(S31 - f), er);
 
 	}
 
@@ -661,6 +674,7 @@ void Interpolation::ReversedInterpolation(double* xArray, double* difVector,doub
 			yArray[i] = F19(xArray[i], c19);
 
 		}
+		
 
 	}
 
@@ -680,17 +694,21 @@ void Interpolation::ReversedInterpolation(double* xArray, double* difVector,doub
 
 		if (variant == 20)
 		{
+			c = c20;
 			yArray[i] = F20(xArray[i], 0);
 		}
 		else if (variant == 24)
 		{
+			c = c24;
 			yArray[i] = F24(xArray[i], 0);
 		}
 		else if (variant == 19)
 		{
+			c = c19;
 			yArray[i] = F19(xArray[i], 0);
 
 		}
+		
 
 	}
 
@@ -713,9 +731,8 @@ void Interpolation::ReversedInterpolation(double* xArray, double* difVector,doub
 		nevyazka = F20(x, 0) - c;
 	else if (variant == 24)
 		nevyazka = F24(x, 0) - c;
-
 	std::cout << "\nКорень: " << x << std::endl;
 	std::cout << "Невязка: " << std::setprecision(8) <<abs(nevyazka) << std::endl;
 
-
+	std::cout << std::endl;
 }
