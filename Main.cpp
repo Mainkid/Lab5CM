@@ -6,17 +6,21 @@
 #include "Matrix.h"
 #include "RootSearchMethods.h"
 #include "Interpolation.h"
+#include "SquareApproximation.h"
 
 using namespace std;
 
 int main()
 {
-<<<<<<< HEAD
+
 	SetConsoleCP(1251);
 	SetConsoleOutputCP(1251);
 	
-	Interpolation::MakeDifTable(1, 2, 0.2, 20);
-=======
+	SquareApproximation sqAppr(variants::var20);
+	sqAppr.DiscreteMethod();
+	printf("\n");
+	sqAppr.IntegrationMethod();
+
 	setlocale(LC_ALL, "Russian");
 	double a = 1;
 	double b = 2;
@@ -25,21 +29,11 @@ int main()
 	double* xArray = new double[n + 1];
 	for (int i = 0; i < n + 1; i++)
 		xArray[i] = a + i * h;
->>>>>>> MainkidBranch
 	
 
 	double** difTable = Interpolation::InitDifTable(n);//del
 	double* difVector = new double[n + 1];
-	
 
-	//Interpolation::MakeDifTable(difTable,xArray,difVector,19);
-	//Interpolation::NewtonInterpolation(difVector, n + 1, 19, a, b, n, xArray, n);
-	//Interpolation::CubeSpline(xArray, difVector, n + 1, 19);
-	//Interpolation::ReversedInterpolation(xArray, difVector, difTable, n, 19);
-	//delete[] difTable;
-	//delete[] difVector;
-	//difTable = Interpolation::InitDifTable(n);
-	//difVector = new double[n + 1];
 
 	
 
@@ -62,5 +56,6 @@ int main()
 	Interpolation::ReversedInterpolation(xArray, difVector, difTable, n, 24);
 	delete[] difTable;
 	delete[] difVector;
+
 	return 0;
 }

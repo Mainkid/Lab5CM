@@ -19,11 +19,7 @@ const double c24 = 8;
 
 void Interpolation::MakeDifTable (double** difTable, double* xArray,double* difVector, int variant)
 {
-<<<<<<< HEAD
-	int n = (b-a) / step;
-	double* xArray = new double[n];
-=======
->>>>>>> MainkidBranch
+
 
 	std::cout << "Интерполяционная формула Ньютона" << std::endl;
 	std::cout << "Таблица разделенных разностей" << std::endl;

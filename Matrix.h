@@ -57,7 +57,7 @@ public:
 	static double MinVectorNorm(double* x, int n);
 
 	//LU разложение
-	static double* LU(double** A, double** L, double** U, double** P, double* b, int n);
+	static double* LU(double** A, double* b, int n);
 
 	//Нахождение числа обусловленности матрицы A
 	static double GetCond(double** A, double** AInversed, int FormNumber, int N);
